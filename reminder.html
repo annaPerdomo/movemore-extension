@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MoveMore — Time to Stretch!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal-50: #e8f4f4;
+      --teal-100: #d4eded;
+      --teal-200: #a8d8d8;
+      --teal-400: #5eaaa8;
+      --teal-500: #4a9896;
+      --teal-600: #3d8585;
+      --teal-700: #2d6b6b;
+      --blush-50: #fdf2f6;
+      --blush-100: #fce7ef;
+      --blush-200: #f8d0dc;
+      --blush-300: #f2b5c8;
+      --blush-400: #e8929a;
+      --cream: #fefaf6;
+      --warm-100: #f5f0ea;
+      --warm-200: #e8e0d4;
+      --warm-400: #b5a898;
+      --warm-700: #5c504a;
+      --warm-900: #2c2520;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      background: linear-gradient(150deg, #1e4f4f 0%, #2d6b6b 25%, #4a8080 45%, #9a7a88 65%, #7d4e5e 85%, #6b3d50 100%);
+      background-size: 400% 400%;
+      animation: gradientDrift 18s ease infinite;
+    }
+
+    @keyframes gradientDrift {
+      0% { background-position: 0% 50%; }
+      25% { background-position: 50% 0%; }
+      50% { background-position: 100% 50%; }
+      75% { background-position: 50% 100%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Ambient glow orbs */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+      opacity: 0.3;
+    }
+
+    body::before {
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(94,170,168,0.7), transparent 70%);
+      top: -180px;
+      left: -80px;
+      animation: ambientFloat1 14s ease-in-out infinite;
+    }
+
+    body::after {
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(232,146,154,0.6), transparent 70%);
+      bottom: -120px;
+      right: -80px;
+      animation: ambientFloat2 11s ease-in-out infinite;
+    }
+
+    @keyframes ambientFloat1 {
+      0%,100% { transform: translate(0,0); }
+      50% { transform: translate(35px,25px); }
+    }
+
+    @keyframes ambientFloat2 {
+      0%,100% { transform: translate(0,0); }
+      50% { transform: translate(-25px,-35px); }
+    }
+
+    /* Floating lotus decorations */
+    .bg-lotus {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.05;
+    }
+
+    .bg-lotus svg { width: 100%; height: 100%; }
+
+    .bg-lotus-1 { width: 200px; height: 150px; top: 5%; left: 3%; animation: lotusSway1 15s ease-in-out infinite; }
+    .bg-lotus-2 { width: 140px; height: 105px; bottom: 8%; right: 5%; animation: lotusSway2 12s ease-in-out infinite; }
+
+    @keyframes lotusSway1 { 0%,100% { transform: translate(0,0) rotate(0deg); } 50% { transform: translate(10px,8px) rotate(3deg); } }
+    @keyframes lotusSway2 { 0%,100% { transform: translate(0,0) rotate(0deg); } 50% { transform: translate(-8px,-6px) rotate(-4deg); } }
+
+    /* === Layout === */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* === Hero === */
+    .pulse-icon {
+      width: 72px;
+      height: 72px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: pulse 3s ease-in-out infinite;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: rgba(255,255,255,0.7);
+    }
+
+    .pulse-icon svg { width: 40px; height: 30px; }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(94,170,168,0); }
+      50% { transform: scale(1.06); box-shadow: 0 0 40px 8px rgba(94,170,168,0.12); }
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(to bottom right, #fff, rgba(255,255,255,0.7));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      opacity: 0.55;
+      margin-top: 6px;
+      margin-bottom: 36px;
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* === Stretch Cards === */
+    .stretch-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 12px;
+      text-align: left;
+      animation: cardSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      transition: background 0.3s, border-color 0.3s, transform 0.3s;
+    }
+
+    .stretch-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.16);
+      transform: translateY(-2px);
+    }
+
+    .stretch-card:nth-child(1) { animation-delay: 0.1s; }
+    .stretch-card:nth-child(2) { animation-delay: 0.2s; }
+    .stretch-card:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes cardSlideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Side-by-side layout for SVG fallback cards */
+    .stretch-card:not(.has-video) {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .stretch-illustration {
+      flex-shrink: 0;
+      width: 110px;
+      height: 110px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .stretch-illustration svg { width: 100%; height: 100%; }
+
+    /* Video card layout */
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      margin-bottom: 14px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .video-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-play {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.15);
+      transition: background 0.25s;
+    }
+
+    .video-wrapper:hover .video-play {
+      background: rgba(0,0,0,0.3);
+    }
+
+    .video-play-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .video-wrapper:hover .video-play-circle {
+      transform: scale(1.08);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.25);
+    }
+
+    .video-play-circle svg {
+      width: 20px;
+      height: 20px;
+      margin-left: 2px;
+    }
+
+    .video-hint {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      opacity: 0.35;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .video-hint svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.7;
+    }
+
+    .stretch-info { flex: 1; min-width: 0; }
+
+    .stretch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .stretch-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .stretch-duration {
+      font-size: 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .stretch-focus {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      opacity: 0.4;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .stretch-description {
+      font-size: 14px;
+      line-height: 1.65;
+      opacity: 0.65;
+    }
+
+    @media (max-width: 500px) {
+      .stretch-card:not(.has-video) {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .stretch-illustration { width: 130px; height: 130px; }
+    }
+
+    /* === Circular Timer === */
+    .timer-section {
+      margin-top: 36px;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: cardSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+    }
+
+    .timer-ring-container {
+      position: relative;
+      width: 188px;
+      height: 188px;
+    }
+
+    .timer-ring {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .timer-ring-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.06);
+      stroke-width: 5;
+    }
+
+    .timer-ring-progress {
+      fill: none;
+      stroke: url(#timerGradient);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 527.79;
+      stroke-dashoffset: 527.79;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .timer-ring-glow {
+      fill: none;
+      stroke: url(#timerGradient);
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-dasharray: 527.79;
+      stroke-dashoffset: 527.79;
+      filter: blur(10px);
+      opacity: 0.2;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .timer-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-display {
+      font-size: 48px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .timer-label {
+      font-size: 10px;
+      opacity: 0.35;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+    }
+
+    /* === Buttons === */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      animation: cardSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+    }
+
+    .btn {
+      padding: 14px 36px;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.25s ease;
+      font-family: inherit;
+      letter-spacing: -0.2px;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0) scale(0.98); }
+
+    .btn-primary {
+      background: white;
+      color: var(--teal-700);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    /* === Done Screen === */
+    .done-screen {
+      display: none;
+      text-align: center;
+    }
+
+    .done-check {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(94,170,168,0.15), rgba(232,146,154,0.1));
+      border: 2px solid rgba(94,170,168,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .done-check svg {
+      width: 40px;
+      height: 40px;
+      stroke: var(--teal-200);
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .done-check-path {
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: drawCheck 0.5s ease-out 0.3s forwards;
+    }
+
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+
+    .done-screen h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(to bottom right, #fff, rgba(255,255,255,0.75));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: cardSlideUp 0.5s ease-out 0.15s both;
+    }
+
+    .done-screen p {
+      font-size: 16px;
+      opacity: 0.6;
+      margin-bottom: 28px;
+      line-height: 1.5;
+      animation: cardSlideUp 0.5s ease-out 0.25s both;
+    }
+
+    .done-screen .btn { animation: cardSlideUp 0.5s ease-out 0.35s both; }
+
+    .motivational {
+      font-style: italic;
+      opacity: 0.3;
+      margin-top: 20px;
+      font-size: 14px;
+      animation: cardSlideUp 0.5s ease-out 0.45s both;
+    }
+
+    .fade-out { animation: fadeOut 0.4s ease-out forwards; }
+    @keyframes fadeOut { to { opacity: 0; transform: scale(0.97); } }
+  </style>
+</head>
+<body>
+  <!-- Background lotus decorations -->
+  <div class="bg-lotus bg-lotus-1">
+    <svg viewBox="0 0 100 75" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="30" rx="11" ry="28" fill="white" opacity="0.85"/>
+      <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(-22 50 60)" fill="white" opacity="0.6"/>
+      <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(22 50 60)" fill="white" opacity="0.6"/>
+      <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(-45 50 60)" fill="white" opacity="0.35"/>
+      <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(45 50 60)" fill="white" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="bg-lotus bg-lotus-2">
+    <svg viewBox="0 0 100 75" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="30" rx="11" ry="28" fill="white" opacity="0.85"/>
+      <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(-22 50 60)" fill="white" opacity="0.6"/>
+      <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(22 50 60)" fill="white" opacity="0.6"/>
+      <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(-45 50 60)" fill="white" opacity="0.35"/>
+      <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(45 50 60)" fill="white" opacity="0.35"/>
+    </svg>
+  </div>
+
+  <!-- Active stretch screen -->
+  <div class="container" id="activeScreen">
+    <div class="pulse-icon">
+      <svg viewBox="0 0 100 75" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="30" rx="11" ry="28" fill="white" opacity="0.9"/>
+        <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(-22 50 60)" fill="white" opacity="0.65"/>
+        <ellipse cx="50" cy="32" rx="10" ry="26" transform="rotate(22 50 60)" fill="white" opacity="0.65"/>
+        <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(-45 50 60)" fill="white" opacity="0.4"/>
+        <ellipse cx="50" cy="36" rx="9" ry="22" transform="rotate(45 50 60)" fill="white" opacity="0.4"/>
+      </svg>
+    </div>
+    <h1>Time to Move</h1>
+    <p class="subtitle">Here's your stretch break — your body earned it.</p>
+
+    <div id="stretchList"></div>
+
+    <div class="timer-section">
+      <div class="timer-ring-container">
+        <svg class="timer-ring" viewBox="0 0 180 180">
+          <defs>
+            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5eaaa8" />
+              <stop offset="50%" stop-color="#c9a8b8" />
+              <stop offset="100%" stop-color="#e8929a" />
+            </linearGradient>
+          </defs>
+          <circle class="timer-ring-bg" cx="90" cy="90" r="84" />
+          <circle class="timer-ring-glow" cx="90" cy="90" r="84" id="timerGlow" />
+          <circle class="timer-ring-progress" cx="90" cy="90" r="84" id="timerRing" />
+        </svg>
+        <div class="timer-center">
+          <div class="timer-display" id="timer">2:00</div>
+          <div class="timer-label">break time</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="startBtn">Start Timer</button>
+      <button class="btn btn-secondary" id="skipBtn">Skip for Now</button>
+    </div>
+  </div>
+
+  <!-- Completed screen -->
+  <div class="container done-screen" id="doneScreen">
+    <div class="done-check">
+      <svg viewBox="0 0 40 40">
+        <path class="done-check-path" d="M 10 20 L 17 27 L 30 13" />
+      </svg>
+    </div>
+    <h2>Nice work!</h2>
+    <p id="doneMessage">Your body thanks you.</p>
+    <button class="btn btn-primary" id="closeBtn">Back to Work</button>
+    <p class="motivational" id="motivational"></p>
+  </div>
+
+  <script src="stretch-illustrations.js"></script>
+  <script src="stretch-videos.js"></script>
+  <script src="reminder.js"></script>
+</body>
+</html>
