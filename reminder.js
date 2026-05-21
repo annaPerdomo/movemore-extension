@@ -16,22 +16,68 @@ const activeScreen = document.getElementById("activeScreen");
 const doneScreen = document.getElementById("doneScreen");
 const doneMessage = document.getElementById("doneMessage");
 const motivationalEl = document.getElementById("motivational");
+const subtitleEl = document.getElementById("subtitle");
 const closeBtn = document.getElementById("closeBtn");
 
 const CIRCUMFERENCE = 2 * Math.PI * 84;
 
 const MOTIVATIONAL_QUOTES = [
-  "Small breaks lead to big breakthroughs.",
-  "You can\u2019t pour from an empty cup. Rest refills it.",
-  "Movement is medicine for the mind.",
-  "The best code is written by people who take care of themselves.",
-  "Your posture today is your health tomorrow.",
-  "A 2-minute break now saves hours of back pain later.",
-  "Sitting is the new smoking. You just put it out.",
-  "Your future self just sent a thank-you note.",
-  "Consistency beats intensity. One stretch at a time.",
-  "You showed up for yourself. That\u2019s the hardest part.",
+  "That was a lovely little pause. Hope it felt nice.",
+  "Look at you, taking a moment for yourself.",
+  "Your body appreciates that more than you know.",
+  "A small stretch, a deep breath. Sometimes that\u2019s all you need.",
+  "Hope your shoulders feel a little lighter now.",
+  "You\u2019re doing a really good job today. Just thought you should hear that.",
+  "What a nice way to spend a couple of minutes.",
+  "Notice how a few deep breaths can quiet everything down.",
+  "That little bit of movement goes a long way.",
+  "One gentle moment at a time. You\u2019ve got this.",
+  "Doesn\u2019t it feel good to just slow down for a second?",
+  "A quiet stretch in the middle of a busy day. How nice.",
+  "Your body says thank you. And so do we.",
+  "Carry that calm feeling with you into whatever comes next.",
+  "Sometimes the smallest pause makes the biggest difference.",
+  "Hey, you showed up for yourself just now. That\u2019s a beautiful thing.",
+  "Imagine if everyone took a moment like you just did. The world would be a softer place.",
+  "You just turned two minutes into something really kind.",
+  "That felt good, didn\u2019t it? You can always come back for more.",
+  "Somewhere in your body, a little knot just said goodbye.",
+  "You didn\u2019t have to do that. But you did. And that\u2019s wonderful.",
+  "If today is being a lot, just know this was a really good thing you did.",
+  "The best part of your day might just be the parts where you slow down.",
+  "You\u2019re a little more relaxed now than you were two minutes ago. That counts.",
+  "There\u2019s something really lovely about choosing to be still for a moment.",
+  "Rest isn\u2019t a reward. It\u2019s just a nice thing you can give yourself anytime.",
+  "Your future self is going to feel that stretch. In a good way.",
+  "That was time well spent. Not productive. Just\u2026 well spent.",
+  "A little gentleness in the middle of the day. You deserve that.",
+  "You just did something really simple and really important at the same time.",
 ];
+
+const SUBTITLE_PHRASES = [
+  "This is your moment. Take it slow.",
+  "A little stretch can make a big difference in your day.",
+  "Your body has been working hard. Let\u2019s give it a nice break.",
+  "You\u2019ve been at it for a while. How about a gentle reset?",
+  "Just a couple of minutes. You\u2019ll feel so much better.",
+  "Think of this as a little gift to yourself.",
+  "Everything else can wait. This is your time.",
+  "You showed up for yourself. That\u2019s already wonderful.",
+  "Take a breath. Stretch it out. You\u2019ve got nowhere else to be right now.",
+  "Even a short pause can make your whole day feel different.",
+  "Hey, you. Yes, you. Time to be kind to your body for a minute.",
+  "The best thing you can do right now is exactly this.",
+  "Let\u2019s shake off some of that tension, shall we?",
+  "A few minutes of gentle movement. That\u2019s all this is.",
+  "Your shoulders called. They\u2019d like a break.",
+  "Pause, breathe, stretch. The simplest kind of self-care.",
+  "Here\u2019s a little break, just for you.",
+  "Whatever you were doing, it\u2019ll still be there in two minutes. Promise.",
+  "This is the easy part. Just follow along and breathe.",
+  "Ready to feel a little more like yourself?",
+];
+
+subtitleEl.textContent = SUBTITLE_PHRASES[Math.floor(Math.random() * SUBTITLE_PHRASES.length)];
 
 // State
 let stretches = [];
@@ -58,36 +104,72 @@ function parsePhases(stretch) {
   const desc = stretch.description;
   const totalSec = parseDuration(stretch.duration);
 
-  if (
+  // Extract per-hold duration from description (e.g. "Hold for 15 seconds")
+  const holdMatch = desc.match(/hold\b[^.]*?(\d+)\s*seconds?/i);
+  const holdSec = holdMatch ? parseInt(holdMatch[1], 10) : null;
+
+  // Extract rep count (e.g. "Repeat 3 times", "Repeat twice")
+  let reps = null;
+  const repeatMatch = desc.match(/repeat\s+(?:\w+\s+)*?(twice|thrice|three|four|five|six|\d+)\s*times?/i);
+  if (repeatMatch) {
+    const word = repeatMatch[1].toLowerCase();
+    const wordMap = { twice: 2, thrice: 3, three: 3, four: 4, five: 5, six: 6 };
+    reps = wordMap[word] || parseInt(word, 10);
+  }
+
+  // Detect side-switching
+  const hasSides =
     /per\s+(side|hand|arm|leg)/i.test(desc) ||
     /switch\s+(sides|which)/i.test(desc) ||
     /then\s+switch/i.test(desc) ||
-    /other\s+(side|shoulder)/i.test(desc)
-  ) {
-    const half = Math.round(totalSec / 2);
+    /other\s+(side|shoulder)/i.test(desc) ||
+    /both\s+sides/i.test(desc) ||
+    /do\s+both/i.test(desc);
+
+  // Detect direction-switching
+  const hasDirections = /each\s+direction/i.test(desc);
+
+  // Determine body-part labels for sides
+  let sideA = "Right side";
+  let sideB = "Left side";
+  if (/per\s+hand/i.test(desc)) { sideA = "Right hand"; sideB = "Left hand"; }
+  else if (/per\s+arm/i.test(desc)) { sideA = "Right arm"; sideB = "Left arm"; }
+  else if (/per\s+leg/i.test(desc)) { sideA = "Right leg"; sideB = "Left leg"; }
+
+  // Side-switching exercises — use per-side hold time if available
+  if (hasSides) {
+    const perSide = holdSec || Math.round(totalSec / 2);
     return [
-      { label: "First side", seconds: half },
-      { label: "Other side", seconds: totalSec - half },
+      { label: sideA, seconds: perSide, type: "side" },
+      { label: sideB, seconds: perSide, type: "side" },
     ];
   }
 
-  if (/each\s+direction/i.test(desc)) {
+  // Direction exercises
+  if (hasDirections) {
     const half = Math.round(totalSec / 2);
     return [
-      { label: "First direction", seconds: half },
-      { label: "Other direction", seconds: totalSec - half },
+      { label: "First direction", seconds: half, type: "direction" },
+      { label: "Other direction", seconds: totalSec - half, type: "direction" },
     ];
   }
 
-  if (/both\s+sides/i.test(desc)) {
-    const half = Math.round(totalSec / 2);
-    return [
-      { label: "First side", seconds: half },
-      { label: "Other side", seconds: totalSec - half },
-    ];
+  // Rep-based holds — only create guided rounds for substantial holds (≥8s)
+  // with a manageable number of reps (2–6). Quick reps like "hold 3s × 8"
+  // stay as a single timed phase.
+  if (holdSec && holdSec >= 8 && reps && reps >= 2 && reps <= 6) {
+    const result = [];
+    for (let i = 0; i < reps; i++) {
+      result.push({
+        label: `Round ${i + 1} of ${reps}`,
+        seconds: holdSec,
+        type: "rep",
+      });
+    }
+    return result;
   }
 
-  return [{ label: null, seconds: totalSec }];
+  return [{ label: null, seconds: totalSec, type: "single" }];
 }
 
 // ---------------------------------------------------------------------------
@@ -160,7 +242,7 @@ function showExercise(index) {
   // Render left column (media)
   cardMedia.innerHTML = buildMediaHTML(stretch);
 
-  // Open video in new tab (iframes blocked on chrome-extension:// pages)
+  // Open video in new tab
   const videoEl = cardMedia.querySelector(".video-container");
   if (videoEl) {
     videoEl.addEventListener("click", () => {
@@ -176,7 +258,7 @@ function showExercise(index) {
   setupPhase(0);
 
   // Reset button
-  startBtn.textContent = "Done \u2713";
+  startBtn.textContent = "Begin";
   startBtn.disabled = false;
   startBtn.style.opacity = "1";
   startBtn.style.cursor = "pointer";
@@ -199,7 +281,12 @@ function setupPhase(phaseIndex) {
   updateTimerDisplay();
 
   if (phase.label) {
-    phaseLabel.textContent = phase.label;
+    let text = phase.label;
+    // Add position counter for side/direction phases
+    if ((phase.type === "side" || phase.type === "direction") && phases.length > 1) {
+      text += ` \u00b7 ${phaseIndex + 1} of ${phases.length}`;
+    }
+    phaseLabel.textContent = text;
     phaseLabel.style.display = "block";
   } else {
     phaseLabel.style.display = "none";
@@ -241,8 +328,24 @@ function onPhaseComplete() {
   currentPhase++;
 
   if (currentPhase < phases.length) {
-    // Switch sides prompt then auto-start
-    phaseLabel.textContent = "\u2728 Switch sides";
+    const nextPhase = phases[currentPhase];
+    let transitionText, delay;
+
+    if (nextPhase.type === "side") {
+      transitionText = "Switch sides";
+      delay = 2000;
+    } else if (nextPhase.type === "direction") {
+      transitionText = "Switch direction";
+      delay = 2000;
+    } else if (nextPhase.type === "rep") {
+      transitionText = "Rest \u2014 next round";
+      delay = 2500;
+    } else {
+      transitionText = "Next";
+      delay = 1500;
+    }
+
+    phaseLabel.textContent = "\u2728 " + transitionText;
     phaseLabel.style.display = "block";
     phaseLabel.classList.add("phase-switch-anim");
 
@@ -250,7 +353,7 @@ function onPhaseComplete() {
       phaseLabel.classList.remove("phase-switch-anim");
       setupPhase(currentPhase);
       startRunning();
-    }, 1800);
+    }, delay);
   } else {
     onExerciseComplete();
   }
