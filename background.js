@@ -433,11 +433,12 @@ async function pickStretches() {
   return picked;
 }
 
-// Set up the alarm
+// Set up the alarm (always resets — use for install, settings changes, and after reminders)
 async function setupAlarm() {
   const { enabled = true, intervalMinutes = 30 } = await chrome.storage.local.get(["enabled", "intervalMinutes"]);
 
   await chrome.alarms.clear(ALARM_NAME);
+  await chrome.storage.local.remove("alarmRemainingMs");
 
   if (enabled) {
     chrome.alarms.create(ALARM_NAME, {
@@ -445,6 +446,35 @@ async function setupAlarm() {
       periodInMinutes: intervalMinutes
     });
   }
+}
+
+// Pause the alarm (when user goes idle) — saves remaining time
+async function pauseAlarm() {
+  const alarm = await chrome.alarms.get(ALARM_NAME);
+  if (alarm) {
+    const remaining = Math.max(0, alarm.scheduledTime - Date.now());
+    await chrome.storage.local.set({ alarmRemainingMs: remaining });
+    await chrome.alarms.clear(ALARM_NAME);
+  }
+}
+
+// Resume the alarm (when user becomes active) — restores saved remaining time
+async function resumeAlarm() {
+  const { enabled = true, alarmRemainingMs, intervalMinutes = 30 } =
+    await chrome.storage.local.get(["enabled", "alarmRemainingMs", "intervalMinutes"]);
+
+  if (!enabled) return;
+
+  const delayMs = alarmRemainingMs != null ? alarmRemainingMs : intervalMinutes * 60000;
+  const delayMinutes = Math.max(delayMs / 60000, 0.1); // minimum ~6 seconds
+
+  await chrome.alarms.clear(ALARM_NAME);
+  chrome.alarms.create(ALARM_NAME, {
+    delayInMinutes: delayMinutes,
+    periodInMinutes: intervalMinutes
+  });
+
+  await chrome.storage.local.remove("alarmRemainingMs");
 }
 
 // Show the reminder
@@ -461,6 +491,9 @@ async function showReminder() {
     activeStartTime: Date.now(),
     accumulatedInactiveMs: 0
   });
+
+  // Clear any paused alarm state and let the repeating alarm handle the next fire
+  await chrome.storage.local.remove("alarmRemainingMs");
 
   // Open the reminder as a new tab
   chrome.tabs.create({
@@ -507,10 +540,11 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   const accumulated = data.accumulatedInactiveMs || 0;
 
   if (newState === "active") {
-    // Woke up — start a new active period
+    // Woke up — start a new active period and resume the stretch alarm
     await chrome.storage.local.set({ activeStartTime: Date.now() });
+    await resumeAlarm();
   } else {
-    // idle or locked — bank the time from this active period
+    // idle or locked — bank the time and pause the stretch alarm
     if (data.activeStartTime) {
       const elapsed = Date.now() - data.activeStartTime;
       await chrome.storage.local.set({
@@ -518,6 +552,7 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
         activeStartTime: null
       });
     }
+    await pauseAlarm();
   }
 });
 
@@ -530,8 +565,17 @@ chrome.runtime.onInstalled.addListener(() => {
   setupAlarm();
 });
 
-// Re-establish alarm on service worker startup
-setupAlarm();
+// Re-establish alarm on service worker startup — only if missing and not paused
+(async () => {
+  const { enabled = true, alarmRemainingMs } =
+    await chrome.storage.local.get(["enabled", "alarmRemainingMs"]);
+  const existing = await chrome.alarms.get(ALARM_NAME);
+
+  if (enabled && !existing && alarmRemainingMs == null) {
+    // Alarm was lost (e.g. browser restart) — create a fresh one
+    setupAlarm();
+  }
+})();
 initSessionTimer();
 
 // Listen for setting changes
@@ -544,7 +588,7 @@ chrome.storage.onChanged.addListener((changes) => {
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "triggerNow") {
-    showReminder();
-    sendResponse({ ok: true });
+    showReminder().then(() => sendResponse({ ok: true }));
+    return true; // keep message channel open for async response
   }
 });

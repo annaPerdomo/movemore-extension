@@ -53,8 +53,14 @@ intervalBtns.forEach((btn) => {
 });
 
 // Stretch now
-stretchNowBtn.addEventListener("click", () => {
-  chrome.runtime.sendMessage({ action: "triggerNow" });
+stretchNowBtn.addEventListener("click", async () => {
+  stretchNowBtn.disabled = true;
+  try {
+    await chrome.runtime.sendMessage({ action: "triggerNow" });
+  } catch {
+    // Service worker may have been waking up — retry once
+    await chrome.runtime.sendMessage({ action: "triggerNow" });
+  }
   window.close();
 });
 
@@ -77,14 +83,25 @@ function updateStreakDisplay(streak) {
 // Live countdown to next reminder
 function updateCountdown() {
   chrome.alarms.get("movemore-reminder", (alarm) => {
-    if (!alarm) {
-      nextReminderEl.textContent = "Off";
+    if (alarm) {
+      const remaining = Math.max(0, alarm.scheduledTime - Date.now());
+      const mins = Math.floor(remaining / 60000);
+      const secs = Math.floor((remaining % 60000) / 1000);
+      nextReminderEl.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
       return;
     }
-    const remaining = Math.max(0, alarm.scheduledTime - Date.now());
-    const mins = Math.floor(remaining / 60000);
-    const secs = Math.floor((remaining % 60000) / 1000);
-    nextReminderEl.textContent = `${mins}:${secs.toString().padStart(2, "0")}`;
+    // No alarm — check if paused (idle) or truly off
+    chrome.storage.local.get(["enabled", "alarmRemainingMs"], (data) => {
+      if (data.enabled === false) {
+        nextReminderEl.textContent = "Off";
+      } else if (data.alarmRemainingMs != null) {
+        const mins = Math.floor(data.alarmRemainingMs / 60000);
+        const secs = Math.floor((data.alarmRemainingMs % 60000) / 1000);
+        nextReminderEl.textContent = `${mins}:${secs.toString().padStart(2, "0")} (paused)`;
+      } else {
+        nextReminderEl.textContent = "Off";
+      }
+    });
   });
 }
 updateCountdown();
